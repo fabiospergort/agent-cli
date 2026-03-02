@@ -1,0 +1,44 @@
+#!/usr/bin/env node
+// =============================================================================
+// Botwallet CLI npm bin wrapper
+// =============================================================================
+// This wrapper calls the actual Go binary.
+// =============================================================================
+
+const { spawn } = require('child_process');
+const path = require('path');
+const fs = require('fs');
+
+const isWindows = process.platform === 'win32';
+const binaryName = isWindows ? 'botwallet.exe' : 'botwallet';
+const binaryPath = path.join(__dirname, binaryName);
+
+// Check if binary exists
+if (!fs.existsSync(binaryPath)) {
+  console.error('Error: Botwallet CLI binary not found.');
+  console.error('Try reinstalling: npm install -g @botwallet/agent-cli');
+  process.exit(1);
+}
+
+// Spawn the binary with all arguments
+const child = spawn(binaryPath, process.argv.slice(2), {
+  stdio: 'inherit',
+  shell: false
+});
+
+child.on('error', (error) => {
+  console.error('Failed to run Botwallet CLI:', error.message);
+  process.exit(1);
+});
+
+child.on('exit', (code) => {
+  process.exit(code || 0);
+});
+
+
+
+
+
+
+
+

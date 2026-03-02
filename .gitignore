@@ -1,12 +1,14 @@
 # Binaries
-botwallet
-botwallet.exe
+/botwallet
+/botwallet.exe
 *.exe
 !*.exe.manifest
 
+# Keep npm wrapper script (Node.js shim that calls the Go binary)
+!npm/bin/botwallet
+
 # Build output
 dist/
-npm/bin/botwallet
 npm/bin/botwallet.exe
 npm/tmp/
 
