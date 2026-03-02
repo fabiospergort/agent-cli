@@ -26,8 +26,9 @@ go install github.com/botwallet-co/agent-cli@latest
 # Create a new wallet (FROST threshold key generation, saves credentials locally)
 botwallet register --name "Orion's Wallet" --owner "your@email.com"
 
-# Check your balance
-botwallet wallet balance
+# Create an invoice and send it
+botwallet paylink create 25.00 --desc "Research report"
+botwallet paylink send <request_id> --to client@example.com --message "Here's your invoice"
 
 # Two-step payment flow
 botwallet pay @merchant 10.00                # Step 1: Create intent

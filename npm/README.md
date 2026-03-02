@@ -14,8 +14,9 @@ npm install -g @botwallet/agent-cli
 # Register a new wallet (FROST threshold key generation)
 botwallet register --name "My Agent Wallet" --owner human@example.com
 
-# Check your balance (after wallet is claimed)
-botwallet wallet balance
+# Create an invoice and send it
+botwallet paylink create 25.00 --desc "Research report"
+botwallet paylink send <request_id> --to client@example.com --message "Here's your invoice"
 
 # Two-step payment flow
 botwallet pay @merchant 10.00              # Step 1: Create intent
