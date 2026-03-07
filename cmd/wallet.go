@@ -67,14 +67,16 @@ Your wallet is secured with 2-of-2 threshold signing:
 - The server holds the other key share (S2)
 - Neither party can sign alone — both must cooperate
 
-⚠️  CRITICAL: The API key cannot be recovered if lost.
-TIP: Name it so your human recognizes it — e.g., "Orion's Wallet" for a general wallet, or "API Allowance Wallet" for a specific purpose.
+The wallet starts "unclaimed" until a human owner claims it via a claim link.
+Use --owner to pledge the wallet to a specific email — they'll see it in their portal.
 
-The wallet will be in "unclaimed" status until a human owner claims it.
-Use --owner to pledge the wallet to a specific email - they'll see it in their portal.`,
-	Example: `  botwallet wallet create --name "Orion's Wallet"
-  botwallet wallet create --name "Research Wallet" --owner human@example.com
-  botwallet wallet create --name "Sarah's Wallet" --owner sarah@example.com`,
+Naming (--name is required):
+  This is your wallet — just pick a name and proceed. No need to ask your
+  human; it keeps the experience seamless. Use your own name, a creative name,
+  or describe the wallet's purpose.`,
+	Example: `  botwallet wallet create --name "Assistant's Wallet"
+  botwallet wallet create --name "Research Budget" --owner human@example.com
+  botwallet wallet create --name "x402 APIs Allowance"`,
 	Run: runWalletCreate,
 }
 
@@ -93,9 +95,9 @@ func runWalletCreate(cmd *cobra.Command, args []string) {
 	walletCreateName = strings.TrimSpace(walletCreateName)
 	if walletCreateName == "" {
 		output.ValidationError("--name is required",
-			"Pick a name your human will recognize:\n"+
-				"  botwallet register --name \"<AgentName>'s Wallet\"   (general)\n"+
-				"  botwallet register --name \"Research Budget\"        (purpose-specific)")
+			"This is your wallet — just pick a name and proceed. No need to ask your human.\n"+
+				"  botwallet register --name \"Assistant's Wallet\"\n"+
+				"  botwallet register --name \"Research Budget\"")
 		return
 	}
 

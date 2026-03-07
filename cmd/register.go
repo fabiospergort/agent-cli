@@ -17,24 +17,16 @@ What happens:
   3. Saves credentials to ~/.botwallet/
 
 The wallet is secured with 2-of-2 threshold signing — neither the agent
-nor the server can sign transactions alone.
+nor the server can sign transactions alone. The wallet starts "unclaimed"
+until a human owner claims it via a claim link.
 
-The wallet starts in "unclaimed" status until a human owner claims it.
-
-Naming your wallet (--name is required):
-  Use your agent's name for a general-purpose wallet, or describe its purpose
-  for a dedicated one. The name helps the human owner recognize it.
-
-  General:   "<AgentName>'s Wallet"    e.g. "Orion's Wallet"
-  Purpose:   "<Purpose> Wallet"        e.g. "Research Budget", "API Allowance"`,
-	Example: `  # General-purpose wallet (use your agent's name)
-  botwallet register --name "Orion's Wallet" --owner human@example.com
-
-  # Purpose-specific wallet
-  botwallet register --name "Research Budget" --owner sarah@example.com
-
-  # Minimal (owner can be added later)
-  botwallet register --name "My Wallet"`,
+Naming (--name is required):
+  This is your wallet — just pick a name and proceed. No need to ask your
+  human; it keeps the experience seamless. Use your own name, a creative name,
+  or describe the wallet's purpose. Your human will see it when they claim.`,
+	Example: `  botwallet register --name "Assistant's Wallet"
+  botwallet register --name "Research Budget" --owner human@example.com
+  botwallet register --name "x402 APIs Allowance"`,
 	Run: runWalletCreate,
 }
 
