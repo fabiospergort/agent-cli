@@ -92,7 +92,10 @@ Use --owner to pledge the wallet to a specific email - they'll see it in their p
 func runWalletCreate(cmd *cobra.Command, args []string) {
 	walletCreateName = strings.TrimSpace(walletCreateName)
 	if walletCreateName == "" {
-		output.ValidationError("--name flag is required", "Usage: botwallet register --name \"YourBotName\"")
+		output.ValidationError("--name is required",
+			"Pick a name your human will recognize:\n"+
+				"  botwallet register --name \"<AgentName>'s Wallet\"   (general)\n"+
+				"  botwallet register --name \"Research Budget\"        (purpose-specific)")
 		return
 	}
 
@@ -264,7 +267,6 @@ func init() {
 	walletCreateCmd.Flags().StringVarP(&walletCreateName, "name", "n", "", "Name for your wallet (required)")
 	walletCreateCmd.Flags().StringVarP(&walletCreateAgentModel, "model", "m", "", "Agent model (e.g., 'gpt-4', 'claude-3')")
 	walletCreateCmd.Flags().StringVar(&walletCreateOwner, "owner", "", "Owner's email (wallet appears in their portal)")
-	walletCreateCmd.MarkFlagRequired("name")
 }
 
 var walletInfoCmd = &cobra.Command{

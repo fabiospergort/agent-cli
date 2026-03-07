@@ -63,6 +63,23 @@ Payments, withdrawals, and x402 API access use a two-step flow:
 
 This ensures neither party can sign alone.
 
+## Troubleshooting
+
+**`botwallet: command not found` after install?**
+
+The npm global bin directory may not be in your PATH. Find and run it directly:
+
+```bash
+# Find the full path
+npm prefix -g
+# Then run using the full path (example for Windows):
+C:\Users\<you>\AppData\Roaming\npm\botwallet.cmd version
+# Or on macOS/Linux:
+$(npm prefix -g)/bin/botwallet version
+```
+
+To fix permanently, add the npm global bin directory to your system PATH.
+
 ## Alternative Installation
 
 ### Direct Download

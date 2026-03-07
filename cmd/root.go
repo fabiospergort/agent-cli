@@ -75,7 +75,6 @@ Utilities:
   ping      Test API connectivity
   docs      Full documentation`,
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
-		// Default is JSON (for bots), --human enables rich terminal output
 		output.SetHumanOutput(humanFlag)
 	},
 }
