@@ -1,8 +1,12 @@
 #!/usr/bin/env node
 // =============================================================================
-// Botwallet CLI npm postinstall script
+// Botwallet CLI npm install script
 // =============================================================================
-// Downloads the appropriate binary for the user's platform.
+// Downloads the appropriate Go binary for the user's platform.
+//
+// Used in two ways:
+//   1. Directly as a postinstall script (npm runs this after package install)
+//   2. Imported by bin/botwallet as a fallback when binary is missing
 // =============================================================================
 
 const https = require('https');
@@ -13,7 +17,6 @@ const { execSync } = require('child_process');
 const PACKAGE_VERSION = require('../package.json').version;
 const GITHUB_RELEASE_URL = `https://github.com/botwallet-co/agent-cli/releases/download/v${PACKAGE_VERSION}`;
 
-// Platform mapping
 const PLATFORM_MAP = {
   darwin: 'darwin',
   linux: 'linux',
@@ -41,13 +44,6 @@ function getArch() {
   return arch;
 }
 
-function getBinaryName() {
-  const platform = getPlatform();
-  const arch = getArch();
-  const ext = platform === 'windows' ? '.exe' : '';
-  return `botwallet_${PACKAGE_VERSION}_${platform}_${arch}${ext}`;
-}
-
 function getArchiveName() {
   const platform = getPlatform();
   const arch = getArch();
@@ -55,35 +51,41 @@ function getArchiveName() {
   return `botwallet_${PACKAGE_VERSION}_${platform}_${arch}.${ext}`;
 }
 
+function getBinaryName() {
+  const platform = getPlatform();
+  const arch = getArch();
+  const ext = platform === 'windows' ? '.exe' : '';
+  return `botwallet_${PACKAGE_VERSION}_${platform}_${arch}${ext}`;
+}
+
 function downloadFile(url, dest) {
   return new Promise((resolve, reject) => {
     const file = fs.createWriteStream(dest);
-    
+
     const request = https.get(url, (response) => {
-      // Handle redirects
       if (response.statusCode === 302 || response.statusCode === 301) {
         file.close();
         fs.unlinkSync(dest);
         return downloadFile(response.headers.location, dest).then(resolve).catch(reject);
       }
-      
+
       if (response.statusCode !== 200) {
         file.close();
         fs.unlinkSync(dest);
         reject(new Error(`Failed to download: HTTP ${response.statusCode}`));
         return;
       }
-      
+
       response.pipe(file);
-      
+
       file.on('finish', () => {
         file.close();
         resolve();
       });
     });
-    
+
     request.on('error', (err) => {
-      fs.unlink(dest, () => {}); // Delete partial file
+      fs.unlink(dest, () => {});
       reject(err);
     });
   });
@@ -91,80 +93,93 @@ function downloadFile(url, dest) {
 
 function extractArchive(archivePath, destDir) {
   const platform = getPlatform();
-  
+
   if (platform === 'windows') {
-    // Use PowerShell to extract zip
     execSync(`powershell -Command "Expand-Archive -Path '${archivePath}' -DestinationPath '${destDir}' -Force"`, {
-      stdio: 'inherit'
+      stdio: 'pipe'
     });
   } else {
-    // Use tar for tar.gz
     execSync(`tar -xzf "${archivePath}" -C "${destDir}"`, {
-      stdio: 'inherit'
+      stdio: 'pipe'
     });
   }
 }
 
-async function install() {
-  console.log('Installing Botwallet CLI...');
-  
-  const binDir = path.join(__dirname, '..', 'bin');
-  const tmpDir = path.join(__dirname, '..', 'tmp');
-  
-  // Create directories
+// Core download function — used by both postinstall and bin wrapper fallback.
+// `binDir` is where the Go binary should end up.
+// `options.log` controls output destination (default: console.log = stdout).
+async function downloadBinary(binDir, options = {}) {
+  const log = options.log || console.log.bind(console);
+
+  const tmpDir = path.join(binDir, '..', 'tmp');
+
   if (!fs.existsSync(binDir)) {
     fs.mkdirSync(binDir, { recursive: true });
   }
   if (!fs.existsSync(tmpDir)) {
     fs.mkdirSync(tmpDir, { recursive: true });
   }
-  
-  try {
-    const archiveName = getArchiveName();
-    const archiveUrl = `${GITHUB_RELEASE_URL}/${archiveName}`;
-    const archivePath = path.join(tmpDir, archiveName);
-    
-    console.log(`Downloading ${archiveName}...`);
-    await downloadFile(archiveUrl, archivePath);
-    
-    console.log('Extracting...');
-    extractArchive(archivePath, tmpDir);
-    
-    // Move binary to bin directory
-    const platform = getPlatform();
-    const srcBinary = path.join(tmpDir, platform === 'windows' ? 'botwallet.exe' : 'botwallet');
-    const destBinary = path.join(binDir, platform === 'windows' ? 'botwallet.exe' : 'botwallet');
-    
-    // Handle case where binary is inside the archive with full name
-    if (!fs.existsSync(srcBinary)) {
-      const binaryName = getBinaryName();
-      const altSrcBinary = path.join(tmpDir, binaryName);
-      if (fs.existsSync(altSrcBinary)) {
-        fs.renameSync(altSrcBinary, destBinary);
-      } else {
-        throw new Error(`Binary not found in archive: ${srcBinary} or ${altSrcBinary}`);
-      }
+
+  const archiveName = getArchiveName();
+  const archiveUrl = `${GITHUB_RELEASE_URL}/${archiveName}`;
+  const archivePath = path.join(tmpDir, archiveName);
+
+  log(`Downloading ${archiveName}...`);
+  await downloadFile(archiveUrl, archivePath);
+
+  log('Extracting...');
+  extractArchive(archivePath, tmpDir);
+
+  const platform = getPlatform();
+  const localBinaryName = platform === 'windows' ? 'botwallet.exe' : 'botwallet';
+  const srcBinary = path.join(tmpDir, localBinaryName);
+  const destBinary = path.join(binDir, localBinaryName);
+
+  if (!fs.existsSync(srcBinary)) {
+    const altName = getBinaryName();
+    const altSrcBinary = path.join(tmpDir, altName);
+    if (fs.existsSync(altSrcBinary)) {
+      fs.renameSync(altSrcBinary, destBinary);
     } else {
-      fs.renameSync(srcBinary, destBinary);
+      throw new Error(`Binary not found in archive. Expected: ${localBinaryName} or ${altName}`);
     }
-    
-    // Make executable on Unix
-    if (platform !== 'windows') {
-      fs.chmodSync(destBinary, 0o755);
-    }
-    
-    // Clean up
-    fs.rmSync(tmpDir, { recursive: true });
-    
+  } else {
+    fs.renameSync(srcBinary, destBinary);
+  }
+
+  if (platform !== 'windows') {
+    fs.chmodSync(destBinary, 0o755);
+  }
+
+  fs.rmSync(tmpDir, { recursive: true, force: true });
+
+  // Verify the binary is real (not empty)
+  const stat = fs.statSync(destBinary);
+  if (stat.size < 1000) {
+    fs.unlinkSync(destBinary);
+    throw new Error('Downloaded binary appears corrupt (too small). Try again.');
+  }
+
+  return destBinary;
+}
+
+// Postinstall entry point — runs when `npm install` triggers this script directly.
+async function postinstall() {
+  console.log('Installing Botwallet CLI...');
+
+  const binDir = path.join(__dirname, '..', 'bin');
+
+  try {
+    await downloadBinary(binDir);
     console.log('Botwallet CLI installed successfully!');
 
     try {
       const npmPrefix = execSync('npm prefix -g', { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] }).trim();
-      const isWindows = process.platform === 'win32';
-      const npmBinDir = isWindows ? npmPrefix : path.join(npmPrefix, 'bin');
+      const isWin = process.platform === 'win32';
+      const npmBinDir = isWin ? npmPrefix : path.join(npmPrefix, 'bin');
 
       const normalize = (p) => path.resolve(p).replace(/[\\/]+$/, '');
-      const caseSensitive = !isWindows;
+      const caseSensitive = !isWin;
       const npmBinNorm = normalize(npmBinDir);
 
       const pathDirs = (process.env.PATH || '').split(path.delimiter);
@@ -174,7 +189,7 @@ async function install() {
       });
 
       if (!inPath) {
-        const fullCmd = isWindows ? path.join(npmBinDir, 'botwallet.cmd') : path.join(npmBinDir, 'botwallet');
+        const fullCmd = isWin ? path.join(npmBinDir, 'botwallet.cmd') : path.join(npmBinDir, 'botwallet');
         console.log('');
         console.log(`NOTE: npm global bin directory is not in your PATH.`);
         console.log(`If "botwallet" is not recognized as a command, use the full path:`);
@@ -186,7 +201,7 @@ async function install() {
     } catch {
       console.log('Run "botwallet --help" to get started.');
     }
-    
+
   } catch (error) {
     console.error('Installation failed:', error.message);
     console.error('');
@@ -196,13 +211,8 @@ async function install() {
   }
 }
 
-// Run installation
-install();
+module.exports = { downloadBinary };
 
-
-
-
-
-
-
-
+if (require.main === module) {
+  postinstall();
+}

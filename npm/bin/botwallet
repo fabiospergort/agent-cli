@@ -1,8 +1,13 @@
 #!/usr/bin/env node
 // =============================================================================
-// Botwallet CLI npm bin wrapper
+// Botwallet CLI — npm bin wrapper
 // =============================================================================
-// This wrapper calls the actual Go binary.
+// Entry point for `botwallet` command when installed via npm/pnpm/yarn.
+// Spawns the Go binary. If the binary is missing (e.g., postinstall was
+// blocked by pnpm v10), downloads it automatically on first run.
+//
+// All download/error messages go to stderr so piped JSON output stays clean:
+//   botwallet version | jq .version   ← works even during first-run download
 // =============================================================================
 
 const { spawn } = require('child_process');
@@ -13,32 +18,72 @@ const isWindows = process.platform === 'win32';
 const binaryName = isWindows ? 'botwallet.exe' : 'botwallet';
 const binaryPath = path.join(__dirname, binaryName);
 
-// Check if binary exists
-if (!fs.existsSync(binaryPath)) {
-  console.error('Error: Botwallet CLI binary not found.');
-  console.error('Try reinstalling: npm install -g @botwallet/agent-cli');
-  process.exit(1);
+function stderr(msg) {
+  process.stderr.write(msg + '\n');
 }
 
-// Spawn the binary with all arguments
-const child = spawn(binaryPath, process.argv.slice(2), {
-  stdio: 'inherit',
-  shell: false
-});
+function runBinary() {
+  const child = spawn(binaryPath, process.argv.slice(2), {
+    stdio: 'inherit',
+    shell: false
+  });
 
-child.on('error', (error) => {
-  console.error('Failed to run Botwallet CLI:', error.message);
-  process.exit(1);
-});
+  child.on('error', (error) => {
+    if (error.code === 'EACCES') {
+      stderr('Permission denied. Try: chmod +x ' + binaryPath);
+    } else {
+      stderr('Failed to run Botwallet CLI: ' + error.message);
+    }
+    process.exit(1);
+  });
 
-child.on('exit', (code) => {
-  process.exit(code || 0);
-});
+  child.on('exit', (code) => {
+    process.exit(code || 0);
+  });
+}
 
+async function downloadAndRun() {
+  stderr('Botwallet CLI binary not found — downloading automatically...');
 
+  try {
+    const { downloadBinary } = require('../scripts/install');
+    await downloadBinary(__dirname, { log: stderr });
+  } catch (err) {
+    stderr('');
+    stderr('Download failed: ' + err.message);
+    stderr('');
+    stderr('Install manually with one of:');
+    if (isWindows) {
+      stderr('  iwr -useb https://botwallet.co/install.ps1 | iex');
+    } else {
+      stderr('  curl -fsSL https://botwallet.co/install.sh | sh');
+    }
+    stderr('  npm install -g @botwallet/agent-cli');
+    stderr('');
+    process.exit(1);
+  }
 
+  if (!fs.existsSync(binaryPath)) {
+    stderr('Download completed but binary not found at expected path.');
+    stderr('Expected: ' + binaryPath);
+    stderr('');
+    stderr('Install manually with one of:');
+    if (isWindows) {
+      stderr('  iwr -useb https://botwallet.co/install.ps1 | iex');
+    } else {
+      stderr('  curl -fsSL https://botwallet.co/install.sh | sh');
+    }
+    process.exit(1);
+  }
 
+  stderr('Download complete.');
+  stderr('');
+  runBinary();
+}
 
-
-
-
+// Main: check for binary, download if missing, then run
+if (fs.existsSync(binaryPath)) {
+  runBinary();
+} else {
+  downloadAndRun();
+}
