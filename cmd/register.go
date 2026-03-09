@@ -1,8 +1,23 @@
 package cmd
 
 import (
+	"fmt"
+	"strings"
+
 	"github.com/spf13/cobra"
 )
+
+func walletCreateArgs(cmd *cobra.Command, args []string) error {
+	if len(args) == 0 {
+		return nil
+	}
+	for _, arg := range args {
+		if strings.Contains(arg, "@") && strings.Contains(arg, ".") {
+			return fmt.Errorf("%q looks like an email — use --owner instead:\n  %s --name \"...\" --owner %s", arg, cmd.CommandPath(), arg)
+		}
+	}
+	return fmt.Errorf("unexpected argument %q\nThis command uses flags, not positional arguments. See: %s --help", args[0], cmd.CommandPath())
+}
 
 var registerCmd = &cobra.Command{
 	Use:   "register",
@@ -27,7 +42,8 @@ Naming (--name is required):
 	Example: `  botwallet register --name "Assistant's Wallet"
   botwallet register --name "Research Budget" --owner human@example.com
   botwallet register --name "x402 APIs Allowance"`,
-	Run: runWalletCreate,
+	Args: walletCreateArgs,
+	Run:  runWalletCreate,
 }
 
 func init() {

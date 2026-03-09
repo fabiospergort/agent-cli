@@ -77,7 +77,8 @@ Naming (--name is required):
 	Example: `  botwallet wallet create --name "Assistant's Wallet"
   botwallet wallet create --name "Research Budget" --owner human@example.com
   botwallet wallet create --name "x402 APIs Allowance"`,
-	Run: runWalletCreate,
+	Args: walletCreateArgs,
+	Run:  runWalletCreate,
 }
 
 // runWalletCreate is the shared implementation for 'wallet create' and 'register'.
